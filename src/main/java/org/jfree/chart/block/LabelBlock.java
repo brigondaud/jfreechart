@@ -81,20 +81,10 @@ import org.jfree.chart.util.SerialUtils;
 public class LabelBlock extends AbstractBlock
         implements Block, PublicCloneable {
 
-    /** For serialization. */
+    private LabelBlockProduct labelBlockProduct = new LabelBlockProduct();
+
+	/** For serialization. */
     static final long serialVersionUID = 249626098864178017L;
-
-    /**
-     * The text for the label - retained in case the label needs
-     * regenerating (for example, to change the font).
-     */
-    private String text;
-
-    /** The label. */
-    private TextBlock label;
-
-    /** The font. */
-    private Font font;
 
     /** The tool tip text (can be {@code null}). */
     private String toolTipText;
@@ -104,9 +94,6 @@ public class LabelBlock extends AbstractBlock
 
     /** The default color. */
     public static final Paint DEFAULT_PAINT = Color.BLACK;
-
-    /** The paint. */
-    private transient Paint paint;
 
     /**
      * The content alignment point.
@@ -149,10 +136,10 @@ public class LabelBlock extends AbstractBlock
      * @param paint the paint ({@code null} not permitted).
      */
     public LabelBlock(String text, Font font, Paint paint) {
-        this.text = text;
-        this.paint = paint;
-        this.label = TextUtils.createTextBlock(text, font, this.paint);
-        this.font = font;
+        labelBlockProduct.setText(text);
+        labelBlockProduct.setPaint2(paint);
+        labelBlockProduct.setLabel(TextUtils.createTextBlock(text, font, this.labelBlockProduct.getPaint()));
+        labelBlockProduct.setFont2(font);
         this.toolTipText = null;
         this.urlText = null;
         this.contentAlignmentPoint = TextBlockAnchor.CENTER;
@@ -167,7 +154,7 @@ public class LabelBlock extends AbstractBlock
      * @see #setFont(Font)
      */
     public Font getFont() {
-        return this.font;
+        return this.labelBlockProduct.getFont();
     }
 
     /**
@@ -178,9 +165,7 @@ public class LabelBlock extends AbstractBlock
      * @see #getFont()
      */
     public void setFont(Font font) {
-        Args.nullNotPermitted(font, "font");
-        this.font = font;
-        this.label = TextUtils.createTextBlock(this.text, font, this.paint);
+        labelBlockProduct.setFont(font);
     }
 
     /**
@@ -191,7 +176,7 @@ public class LabelBlock extends AbstractBlock
      * @see #setPaint(Paint)
      */
     public Paint getPaint() {
-        return this.paint;
+        return this.labelBlockProduct.getPaint();
     }
 
     /**
@@ -202,10 +187,7 @@ public class LabelBlock extends AbstractBlock
      * @see #getPaint()
      */
     public void setPaint(Paint paint) {
-        Args.nullNotPermitted(paint, "paint");
-        this.paint = paint;
-        this.label = TextUtils.createTextBlock(this.text, this.font,
-                this.paint);
+        labelBlockProduct.setPaint(paint);
     }
 
     /**
@@ -309,8 +291,8 @@ public class LabelBlock extends AbstractBlock
      */
     @Override
     public Size2D arrange(Graphics2D g2, RectangleConstraint constraint) {
-        g2.setFont(this.font);
-        Size2D s = this.label.calculateDimensions(g2);
+        g2.setFont(this.labelBlockProduct.getFont());
+        Size2D s = this.labelBlockProduct.getLabel().calculateDimensions(g2);
         return new Size2D(calculateTotalWidth(s.getWidth()),
                 calculateTotalHeight(s.getHeight()));
     }
@@ -353,10 +335,10 @@ public class LabelBlock extends AbstractBlock
                 entityArea = (Shape) area.clone();
             }
         }
-        g2.setPaint(this.paint);
-        g2.setFont(this.font);
+        g2.setPaint(this.labelBlockProduct.getPaint());
+        g2.setFont(this.labelBlockProduct.getFont());
         Point2D pt = this.textAnchor.getAnchorPoint(area);
-        this.label.draw(g2, (float) pt.getX(), (float) pt.getY(),
+        this.labelBlockProduct.getLabel().draw(g2, (float) pt.getX(), (float) pt.getY(),
                 this.contentAlignmentPoint);
         BlockResult result = null;
         if (ebp != null && sec != null) {
@@ -384,13 +366,13 @@ public class LabelBlock extends AbstractBlock
             return false;
         }
         LabelBlock that = (LabelBlock) obj;
-        if (!this.text.equals(that.text)) {
+        if (!this.labelBlockProduct.getText().equals(that.labelBlockProduct.getText())) {
             return false;
         }
-        if (!this.font.equals(that.font)) {
+        if (!this.labelBlockProduct.getFont().equals(that.labelBlockProduct.getFont())) {
             return false;
         }
-        if (!PaintUtils.equal(this.paint, that.paint)) {
+        if (!PaintUtils.equal(this.labelBlockProduct.getPaint(), that.labelBlockProduct.getPaint())) {
             return false;
         }
         if (!ObjectUtils.equal(this.toolTipText, that.toolTipText)) {
@@ -429,7 +411,7 @@ public class LabelBlock extends AbstractBlock
      */
     private void writeObject(ObjectOutputStream stream) throws IOException {
         stream.defaultWriteObject();
-        SerialUtils.writePaint(this.paint, stream);
+        SerialUtils.writePaint(this.labelBlockProduct.getPaint(), stream);
     }
 
     /**
@@ -443,7 +425,7 @@ public class LabelBlock extends AbstractBlock
     private void readObject(ObjectInputStream stream)
         throws IOException, ClassNotFoundException {
         stream.defaultReadObject();
-        this.paint = SerialUtils.readPaint(stream);
+        labelBlockProduct.setPaint2(SerialUtils.readPaint(stream));
     }
 
 }
